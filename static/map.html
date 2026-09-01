@@ -37,6 +37,15 @@
 
         // Create a persistent layer group for markers
         const busLayer = L.layerGroup().addTo(map);
+        var busIcon = L.Icon.extend({
+            options: {
+                iconSize:     [10, 10],
+                iconAnchor:   [5, 5],
+                popupAnchor:  [-3, -3]
+            }
+        });
+        var greenBus = new busIcon({iconUrl: 'images/greenbus.png'}),
+            redBus = new busIcon({iconUrl: 'images/redbus.png'});
 
         // 2. Fetch GeoJSON from FastAPI and update vector points
         async function updateMap() {
@@ -48,19 +57,23 @@
 
                 L.geoJSON(data, {
                     pointToLayer: function (feature, latlng) {
-                        return L.circleMarker(latlng, {
-                            radius: 6,
-                            fillColor: "#0080FF",
-                            color: "#003366",
-                            weight: 1,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        });
+                        var isDelayed = feature.properties.delay > 0;
+                        return L.marker(latlng, {icon: isDelayed ? redBus : greenBus});
+                        // return L.circleMarker(latlng, {
+                        //     radius: 6,
+                        //     fillColor: isDelayed ? "#FF0000" : "#00FF00",
+                        //     color: "#003366",
+                        //     weight: 1,
+                        //     opacity: 1,
+                        //     fillOpacity: 0.8
+                        // });
                     },
                     onEachFeature: function (feature, layer) {
+                        var isDelayed = feature.properties.delay > 0; 
                         if (feature.properties) {
                             const props = feature.properties;
-                            layer.bindPopup(`<b>Bus ID:</b> ${props.id || 'N/A'}`);
+                            layer.bindPopup(`<b>Bus ID:</b> ${props.id || 'N/A'}
+                                            <b>Delay:</b> ${ isDelayed ? props.delay : "On Time" || 'N/A'}`);
                         }
                     }
                 }).addTo(busLayer);

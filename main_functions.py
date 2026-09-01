@@ -35,5 +35,6 @@ def merge_bus_data(url, api_key):
 	delay = get_bus_delay(url, api_key)
 	merge = pd.merge(left=pd.DataFrame(data), right=pd.DataFrame(delay), on='id', how='left')
 	merge.drop_duplicates(keep='first', inplace=True)
+	merge.fillna(0, inplace=True)
 	merge_dict = merge.to_dict("records")
 	return merge_dict

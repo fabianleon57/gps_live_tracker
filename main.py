@@ -9,7 +9,6 @@ from fastapi.responses import FileResponse
 api_key='2fcc6aee-7345-4499-aee3-bdcd1087bc00'
 url=f'https://gtfsrt.prod.obanyc.com/vehiclePositions?key={api_key}'
 
-
 app = FastAPI(title="Live Bus GeoJSON API")
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/images", StaticFiles(directory="images"), name="images")
 
 @app.get("/")
 def read_index():
@@ -37,7 +37,8 @@ def get_buses_geojson():
                 "coordinates": [bus["lon"], bus["lat"]]
             },
             "properties": {
-                "id": bus["id"], "delay": bus["delay"]
+                "id": bus["id"],
+                "delay": bus["delay"]
             }
         }
         features.append(feature)
