@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 from google.transit import gtfs_realtime_pb2
 
-def get_bus_data(url, api_key):
+def get_bus_data(url):
 	response=requests.get(url)
 	content = response.content
 	feed = gtfs_realtime_pb2.FeedMessage()
@@ -18,8 +18,8 @@ def get_bus_data(url, api_key):
 	        bus_details.append({'id' : bus_id, 'lat' : lat, 'lon' : lon})
 	return bus_details
 
-def get_bus_delay(url, api_key):
-	response=requests.get(f'https://gtfsrt.prod.obanyc.com/tripUpdates?key={api_key}')
+def get_bus_delay(url):
+	response=requests.get(url)
 	content=response.content
 	feed = gtfs_realtime_pb2.FeedMessage()
 	feed.ParseFromString(content)
@@ -30,11 +30,16 @@ def get_bus_delay(url, api_key):
 		        bus_details.append({'id' : entity.trip_update.vehicle.id, 'delay':  entity.trip_update.delay})
 	return bus_details
 
-def merge_bus_data(url, api_key):
-	data  = get_bus_data(url, api_key)
-	delay = get_bus_delay(url, api_key)
+def merge_bus_data(url1,url2):
+	data  = get_bus_data(url1)
+	delay = get_bus_delay(url2)
 	merge = pd.merge(left=pd.DataFrame(data), right=pd.DataFrame(delay), on='id', how='left')
 	merge.drop_duplicates(keep='first', inplace=True)
 	merge.fillna(0, inplace=True)
 	merge_dict = merge.to_dict("records")
 	return merge_dict
+
+def get_api_key(file):
+	with open(file, 'r') as f:
+		api_key = f.read()
+	return api_key
