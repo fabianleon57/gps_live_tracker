@@ -11,7 +11,9 @@ from fastapi.responses import FileResponse
 api_key = get_api_key(f'{os.getcwd()}/../api_keys/mta_api')
 urlvehicle=f'https://gtfsrt.prod.obanyc.com/vehiclePositions?key={api_key}'
 urldelay=f'https://gtfsrt.prod.obanyc.com/tripUpdates?key={api_key}'
-
+bus_list = merge_bus_data(urlvehicle, urldelay, None)
+print(bus_list)
+exit()
 class MapBounds(BaseModel):
     south: float
     west: float
@@ -28,26 +30,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/images", StaticFiles(directory="images"), name="images")
 
 @app.get("/")
 def read_index():
-    return FileResponse("static/map.html")
+    return FileResponse("templates/map.html")
 
 # Endpoint to receive and print bounds
 @app.post("/api/print-bounds")
 async def receive_bounds(bounds: MapBounds):
     app.state.map_bounds = bounds
-    print("\n================ MAP BOUNDS RECEIVED ================")
-    print(f"Bounds {bounds}")
-    print("=====================================================\n")
+    # print("\n================ MAP BOUNDS RECEIVED ================")
+    # print(f"Bounds {bounds}")
+    # print("=====================================================\n")
     
     return {"status": "success", "bounds": bounds.model_dump()}
 
 @app.get("/api/buses.geojson")
 def get_buses_geojson():
     bus_list = merge_bus_data(urlvehicle, urldelay, app.state.map_bounds)
-    print(bus_list)
     features = []
     for bus in bus_list:
         feature = {

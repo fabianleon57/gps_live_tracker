@@ -42,7 +42,7 @@ layer = pdk.Layer(
 # Render/Update ONLY the layer data in the existing viewport
 map_placeholder.pydeck_chart(
     pdk.Deck(
-	    map_style="road",
+        map_style="road",
         layers=[layer],
         tooltip={"text": "Bus ID: {id}"},
         initial_view_state=VIEW_STATE,
@@ -58,19 +58,19 @@ exit()
 
 bus_details = get_bus_data(url, api_key)
 if bus_details:
-	for bus in bus_details:
-		folium.CircleMarker(
-			location=[bus["lat"], bus["lon"]],
-			radius=6,
-			color="blue",
-			fill=True,
-			fill_color="cyan",
-			fill_opacity=0.7,
-			popup=f"<b>Bus ID:</b> {bus['id']}<br><b>",
-		).add_to(nyc_map)
+    for bus in bus_details:
+        folium.CircleMarker(
+            location=[bus["lat"], bus["lon"]],
+            radius=6,
+            color="blue",
+            fill=True,
+            fill_color="cyan",
+            fill_opacity=0.7,
+            popup=f"<b>Bus ID:</b> {bus['id']}<br><b>",
+        ).add_to(nyc_map)
 
-	with map_placeholder.container():
-	 	st_folium(nyc_map, width=1200, height=650, returned_objects=[])
+    with map_placeholder.container():
+         st_folium(nyc_map, width=1200, height=650, returned_objects=[])
        
             
 # Hold thread state execution for 10 seconds before initiating the next network cycle

@@ -1,0 +1,8 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:pyenv",
+    "python.terminal.executeInFileDir": false,
+    "[python]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+    }
+}

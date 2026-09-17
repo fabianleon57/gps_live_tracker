@@ -70,6 +70,10 @@ async function updateMap() {
         console.error("Error updating map points:", error);
     }
 }
-
+//This function is used when the user clicks on the search button
+function searchInArea() {
+    updateMap();
+}
+// The points in the map is updated every 30 seconds.
 updateMap();
 setInterval(updateMap, 30000); 

@@ -1,3 +1,4 @@
+import os
 import requests
 import pandas as pd
 from google.transit import gtfs_realtime_pb2
@@ -50,3 +51,19 @@ def get_api_key(file):
     with open(file, 'r') as f:
         api_key = f.read()
     return api_key
+
+def create_dataframe(pth):
+    df = pd.read_csv(pth)
+    return df
+
+def merge_shapes_and_trips(pth):
+    shapes = create_dataframe(os.path.join(pth,"shapes.txt"))
+    trips = create_dataframe(os.path.join(pth,"trips.txt"))
+    routes = create_dataframe(os.path.join(pth,"routes.txt"))
+    routes=routes[["route_id", "agency_id"]]
+    routes["agency+route"] = routes["agency_id"] + "_" + routes["route_id"]
+    shapes = shapes.merge(trips[['shape_id', 'route_id']],on='shape_id',how='left')
+    shapes["latlon"] = list(zip(shapes["shape_pt_lat"], shapes["shape_pt_lon"]))
+    shapes = shapes.merge(routes[['agency+route', 'route_id']],on='route_id',how='left')
+    shape_grouped = shapes[["latlon", "agency+route"]].groupby('agency+route').agg(list).reset_index()
+    return shape_grouped
