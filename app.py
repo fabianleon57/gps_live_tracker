@@ -11,9 +11,7 @@ from fastapi.responses import FileResponse
 api_key = get_api_key(f'{os.getcwd()}/../api_keys/mta_api')
 urlvehicle=f'https://gtfsrt.prod.obanyc.com/vehiclePositions?key={api_key}'
 urldelay=f'https://gtfsrt.prod.obanyc.com/tripUpdates?key={api_key}'
-bus_list = merge_bus_data(urlvehicle, urldelay, None)
-print(bus_list)
-exit()
+
 class MapBounds(BaseModel):
     south: float
     west: float

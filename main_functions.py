@@ -14,9 +14,10 @@ def get_bus_data(url):
     for entity in feed.entity:
         if entity.HasField('vehicle'):
             bus_id = entity.vehicle.vehicle.id
+            route_id = entity.vehicle.trip.route_id
             lat = entity.vehicle.position.latitude
             lon = entity.vehicle.position.longitude
-            bus_details.append({'id' : bus_id, 'lat' : lat, 'lon' : lon})
+            bus_details.append({'id' : bus_id, 'route_id' : route_id, 'lat' : lat, 'lon' : lon})
     return bus_details
 
 def get_bus_delay(url):
@@ -44,7 +45,7 @@ def merge_bus_data(url1,url2,bounds=None):
             (merge['lon'] >= bounds.west) &
             (merge['lon'] <= bounds.east)
         ]
-    merge_dict = merge.to_dict("records")
+    merge_dict = merge#.to_dict("records")
     return merge_dict
 
 def get_api_key(file):
@@ -56,14 +57,24 @@ def create_dataframe(pth):
     df = pd.read_csv(pth)
     return df
 
+def get_txt_pth(pth, txt):
+    files_pth = list()
+    for root, dirs, files in os.walk(pth):
+        if txt in files:
+            files_pth.append(os.path.join(root, txt))
+    return files_pth
+
 def merge_shapes_and_trips(pth):
-    shapes = create_dataframe(os.path.join(pth,"shapes.txt"))
-    trips = create_dataframe(os.path.join(pth,"trips.txt"))
-    routes = create_dataframe(os.path.join(pth,"routes.txt"))
-    routes=routes[["route_id", "agency_id"]]
-    routes["agency+route"] = routes["agency_id"] + "_" + routes["route_id"]
+    shapes_txt = get_txt_pth(pth, "shapes.txt")
+    shapes = pd.concat([create_dataframe(file) for file in shapes_txt], ignore_index=True)
+    trips = pd.concat([create_dataframe(file) for file in get_txt_pth(pth, "trips.txt")], ignore_index=True)
+    # shapes = create_dataframe(os.path.join(pth,"shapes.txt"))
+    # trips = create_dataframe(os.path.join(pth,"trips.txt"))
+    # routes = create_dataframe(os.path.join(pth,"routes.txt"))
+    # routes=routes[["route_id", "agency_id"]]
+    # routes["agency+route"] = routes["agency_id"] + "_" + routes["route_id"]
     shapes = shapes.merge(trips[['shape_id', 'route_id']],on='shape_id',how='left')
     shapes["latlon"] = list(zip(shapes["shape_pt_lat"], shapes["shape_pt_lon"]))
-    shapes = shapes.merge(routes[['agency+route', 'route_id']],on='route_id',how='left')
-    shape_grouped = shapes[["latlon", "agency+route"]].groupby('agency+route').agg(list).reset_index()
+    # shapes = shapes.merge(routes[['agency+route', 'route_id']],on='route_id',how='left')
+    shape_grouped = shapes[["latlon", "route_id"]].groupby('route_id').agg(list).reset_index()
     return shape_grouped
